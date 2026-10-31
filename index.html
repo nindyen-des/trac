@@ -76,14 +76,12 @@
     <footer>Made by Yoruichi ha | <a href="https://github.com/your-github-username" target="_blank">GitHub Repo</a></footer>
 
     <script>
-        // 1. IP & Clock
         let userIP = 'Unknown';
         fetch('https://api.ipify.org?format=json')
             .then(res => res.json())
             .then(data => { 
                 userIP = data.ip; 
                 document.getElementById('user-ip').innerText = userIP; 
-                // Send notification to Telegram via Vercel API
                 fetch('/api/notify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -95,7 +93,6 @@
             document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-US', { hour12: false });
         }, 1000);
 
-        // 2. Chat Logic
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
@@ -129,7 +126,6 @@
                 let queryText = text;
                 if (attachedImageBase64) queryText = `[User uploaded an image] ${text || "Please analyze this."}`;
                 
-                // Send chat notification to Telegram
                 fetch('/api/notify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
