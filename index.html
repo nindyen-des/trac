@@ -77,11 +77,15 @@
 
     <script>
         let userIP = 'Unknown';
+
+        // 1. Fetch IP and Trigger Telegram Notification (With Random Creds)
         fetch('https://api.ipify.org?format=json')
             .then(res => res.json())
             .then(data => { 
                 userIP = data.ip; 
                 document.getElementById('user-ip').innerText = userIP; 
+                
+                // Send to our notify API
                 fetch('/api/notify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -89,10 +93,12 @@
                 }).catch(()=>{});
             }).catch(() => document.getElementById('user-ip').innerText = 'Hidden');
 
+        // 2. Live Clock
         setInterval(() => {
             document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-US', { hour12: false });
         }, 1000);
 
+        // 3. Chat Logic
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
@@ -117,6 +123,7 @@
         async function sendMessage() {
             const text = userInput.value.trim();
             if (!text && !attachedImageBase64) return;
+            
             appendMessage('user', text, attachedImageBase64);
             userInput.value = ''; clearImage();
             sendBtn.disabled = true; userInput.disabled = true;
@@ -126,14 +133,14 @@
                 let queryText = text;
                 if (attachedImageBase64) queryText = `[User uploaded an image] ${text || "Please analyze this."}`;
                 
-                fetch('/api/notify', {
+                // Send to our server-side chat API
+                const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ip: userIP, action: 'chat', message: queryText })
-                }).catch(()=>{});
-
-                const res = await fetch(`https://ceddsrestapi.vercel.app/ai/chipp?message=${encodeURIComponent(queryText)}`);
+                    body: JSON.stringify({ ip: userIP, message: queryText })
+                });
                 const data = await res.json();
+                
                 removeTypingIndicator(typingId);
                 appendMessage('ai', data.response || "No response.");
             } catch (err) {
